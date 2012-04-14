@@ -24,6 +24,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Retrieved from: http://en.literateprograms.org/Red-black_tree_(Java)?oldid=16622
 */
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+
 enum Color { RED, BLACK }
 
 class Node
@@ -65,19 +69,23 @@ class Node
     }
 }
 
-public class RedBlackTree
+public class RBTree
 {
     public static final boolean VERIFY_RBTREE = true;
     private static final int INDENT_STEP = 4;
 
+    public Node minimum;
+    public Node maximum;
     public Node root;
 
-    public RedBlackTree() {
+    public RBTree() {
         root = null;
+        minimum = null;
+        maximum = null;
         //verifyProperties();
     }
 
-       private static Color nodeColor(Node n) {
+    private static Color nodeColor(Node n) {
         return n == null ? Color.BLACK : n.color;
     }
 
@@ -198,6 +206,18 @@ public class RedBlackTree
         insertedNode.predecessor = predecessor;
         if (predecessor != null)
         predecessor.successor = insertedNode;
+        if (minimum == null) {
+            minimum = insertedNode;
+        }
+        else if (insertedNode.key < minimum.key) {
+            minimum = insertedNode;
+        }
+        if (maximum == null) {
+            maximum = insertedNode;
+        }
+        else if (insertedNode.key > maximum.key) {
+            maximum = insertedNode;
+        }
     }
     private void insertCase1(Node n) {
         if (n.parent == null)
@@ -243,8 +263,17 @@ public class RedBlackTree
     }
     public void delete(int key) {
         Node n = lookupNode(key);
+
         if (n == null)
             return;  // intey not found, do nothing
+        Node successor = n.successor;
+        Node predecessor = n.predecessor;
+        if (minimum == n) {
+            minimum = n.successor;
+        }
+        if (maximum == n) {
+            maximum = n.predecessor;
+        }
         if (n.left != null && n.right != null) {
             // Copy key/value from predecessor and then delete it instead
             Node pred = maximumNode(n.left);
@@ -263,6 +292,11 @@ public class RedBlackTree
         if (nodeColor(root) == Color.RED) {
             root.color = Color.BLACK;
         }
+
+        if (successor != null)
+        successor.predecessor = predecessor;
+        if (predecessor != null)
+        predecessor.successor = successor;
 
     }
     private static Node maximumNode(Node n) {
@@ -367,25 +401,33 @@ public class RedBlackTree
     }
 
     public static void main(String[] args) {
-        RedBlackTree t = new RedBlackTree();
-
-        for (int i = 10; i > 0; i--) {
-            int x = i;
+        RBTree t = new RBTree();
+        Random r = new Random();
+        int size = 100;
+        ArrayList <Integer> items = new ArrayList<Integer>();
+        for (int i = 0; i < size; i ++) {
+            items.add(i);
+        }
+        Collections.shuffle(items);
+        for (int i = 0; i < size; i++) {
+            int x = items.get(i);
 
             System.out.println("Inserting " + x);
 
             t.insert(x);
         }
-        for (int i = 10; i > 0; i--) {
-            if (t.lookup(i).predecessor != null)
-            System.out.println(t.lookup(i).predecessor.key);
+        for (int i = 0; i < size/4; i++) {
+            int deletionIndex = r.nextInt(size);
+            t.delete(deletionIndex);
         }
-        for (int i = 0; i < 10; i++) {
-            int x = i;
 
-            System.out.println("Deleting key " + x);
 
-            t.delete(x);
+        for (int i = 0; i < size; i++) {
+            Node n = t.lookup(i);
+            if (n != null)
+            if (n.successor != null)
+            if (n.predecessor != null)
+            System.out.println(n.predecessor.key + "<-" + n.key + "->" + n.successor.key);
         }
     }
 }
